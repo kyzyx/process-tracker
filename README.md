@@ -25,10 +25,12 @@ TODO: A smartwatch app
 ### Python server setup
 Install dependencies:
 > $ pip install gspread oauth2client
+
 Run server (point at logs directory)
 > $ python server/server.py logs/
 
 FIXME: User account (need email) vs public sheet
+
 FIXME: How to get sheet location to android app?
 
 ### Android app setup

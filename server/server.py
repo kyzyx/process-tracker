@@ -80,7 +80,6 @@ def updatefiles():
 
     for f in files:
         epochtime = currtime/(60*60*24) + 25569
-        f = files[0]
         name = f[:-len(LOGS_EXTENSION)]
         if name == ".":
             print("Invalid job name '.'")

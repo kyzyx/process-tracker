@@ -1,4 +1,5 @@
 import gspread, os, time, re, sys
+from ringbuffer import RingBuffer
 from gspread.models import Cell
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -6,6 +7,7 @@ CHECK_INTERVAL = 10   # Seconds between updates
 LOGS_DIR = "." if len(sys.argv) < 2 else sys.argv[1]
 LOGS_EXTENSION = ".log"
 MAX_JOBS = 5
+MAX_LINES = 10
 SHEET_TITLE = "Process Tracker Data"
 
 UPDATED_COL = 2
@@ -124,10 +126,13 @@ def updatefiles():
         fd = open(f, "r")
         fd.seek(fp)
         percentage = float(row[PROGRESS_COL-1])
+
+        linesbuffer = RingBuffer(MAX_LINES)
+
+        status = ""
+        task = ""
         for line in fd.readlines():
             if line.strip():
-                status = "=D3"
-                task = "=E3"
                 if line.startswith("status:") or line.startswith("Status:"):
                     status = line[len("status:"):].strip()
                 if line.startswith("task:") or line.startswith("Task:"):
@@ -135,11 +140,16 @@ def updatefiles():
                 line_progress = findprogress(line)
                 if line_progress > 0:
                     percentage = line_progress
-                jobsheet.insert_row([epochtime, line[:-1], percentage, status, task], 2, value_input_option='USER_ENTERED')
+                linesbuffer.push([epochtime, line[:-1], percentage, status if status else "=D3", task if task else "=E3"])
+
+        for line in linesbuffer:
+            jobsheet.insert_row(line, 2, value_input_option='USER_ENTERED')
+
         if percentage == 100:
             completed = True
             # FIXME: Other completion criteria
             jobsmap.update_cell(currjobs.index(name)+1, 3, 'Yes')
+
         fp = fd.tell()
         updated_cells = [
                 Cell(rowidx, UPDATED_COL, epochtime),

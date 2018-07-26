@@ -31,7 +31,7 @@ def findfractionalprogress(line, begin_only=True):
             idx = s.find('/')
             den *= float(s[idx+1:])
             progress += float(s[:idx]) / den
-        return progress
+        return 100*progress
     else:
         return -1
 

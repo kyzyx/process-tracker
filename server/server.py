@@ -1,4 +1,5 @@
 import gspread, os, time, re, sys
+from gspread.models import Cell
 from oauth2client.service_account import ServiceAccountCredentials
 
 CHECK_INTERVAL = 10   # Seconds between updates
@@ -66,10 +67,10 @@ try:
 except gspread.WorksheetNotFound:
     jobs = ss.add_worksheet("_Jobs", 101, 4)
     jobs.append_row(["Created", "Updated", "Completed", "Progress", "FP", "Name"])
-    jobsmap = ss.add_worksheet("_JobMap", MAX_JOBS+1, 2)
-    jobsmap.append_row(["SheetID", "JobName"])
+    jobsmap = ss.add_worksheet("_JobMap", MAX_JOBS+1, 3)
+    jobsmap.append_row(["SheetID", "JobName", "Completed"])
     for i in range(MAX_JOBS):
-        jobsmap.append_row(["Sheet%d"%(i+1), "."])
+        jobsmap.append_row(["Sheet%d"%(i+1), ".", "No"])
 
 lastupdate = 0
 def updatefiles():
@@ -93,14 +94,20 @@ def updatefiles():
         # Find sheet for job
         currjobs = jobsmap.col_values(2)
         try:
-            jobsheet = ss.worksheet(idx2sheet(currjobs.index(name)))
+            idx = currjobs.index(name)
+            jobsheet = ss.worksheet(idx2sheet(idx))
+            jobsmap.update_cell(idx+1, 3, 'No')
         except ValueError:
             try:
                 idx = currjobs.index('.')
             except ValueError:
-                #continue
-                pass
-            jobsmap.update_cell(idx+1, 2, name)
+                currcompletion = jobsmap.col_values(3)
+                try:
+                    idx = currcompletion.index('Yes')
+                except ValueError:
+                    continue
+            jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No')])
+            currjobs[idx] = name
             sheetid = idx2sheet(idx)
             try:
                 jobsheet = ss.worksheet(sheetid)
@@ -128,8 +135,7 @@ def updatefiles():
         if percentage == 100:
             completed = True
             # FIXME: Other completion criteria
-            jobsmap.update_cell(currjobs.index(name)+1, 2, '.')  # Free up this sheet
-
+            jobsmap.update_cell(currjobs.index(name)+1, 3, 'Yes')
         fp = fd.tell()
         jobs.update_cell(rowidx, UPDATED_COL, epochtime)
         if completed:

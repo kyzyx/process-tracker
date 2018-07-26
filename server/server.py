@@ -129,9 +129,25 @@ def updatefiles():
         completed = False
         fp = int(row[FP_COL-1])
         fd = open(f, "r")
-        fd.seek(fp)
-        percentage = float(row[PROGRESS_COL-1])
+        fd.seek(0,2)
+        filelen = fd.tell()
+        # TODO: Check previous N characters match previous line
+        if filelen < fp:
+            # This job got restarted; update status
+            jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No')])
+            jobsheet.clear()
+            jobsheet.append_row(['Timestamp', 'Line', 'Progress', 'Status', 'Task'])
+            jobs.update_cells([Cell(rowidx, 1, epochtime),
+                               Cell(rowidx, UPDATED_COL, epochtime),
+                               Cell(rowidx, COMPLETED_COL, ''),
+                               Cell(rowidx, PROGRESS_COL, 0),
+                               Cell(rowidx, FP_COL, 0)])
+            fp = 0
+            percentage = 0
+        else:
+            percentage = float(row[PROGRESS_COL-1])
 
+        fd.seek(fp)
         linesbuffer = RingBuffer(MAX_LINES)
 
         status = ""

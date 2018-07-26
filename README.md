@@ -42,3 +42,5 @@ By default, the app will simply display the last N lines of output from each job
 - Progress fraction: If one or more fractions (number / number) are found, then they are treated as progress fractions, with finer resolution progress to the right. Progress bar mode is automatically enabled if the fractions are the first tokens in the line.
 - Error: If the word "Error" or "Fatal" is detected, a notification is sent.
 - Graph: A graph can be enabled for a particular token in the output.
+- Update the status of the task by outputting a line beginning with "Status:"
+- Update the displayed task title by outputting a line beginning with "Task:"

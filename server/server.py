@@ -113,35 +113,43 @@ def updatefiles():
                 jobsheet = ss.worksheet(sheetid)
                 jobsheet.clear()
             except gspread.WorksheetNotFound:
-                jobsheet = ss.add_worksheet(sheetid, 50, 2)
-            jobsheet.append_row(['Timestamp', 'Line'])
+                jobsheet = ss.add_worksheet(sheetid, 50, 5)
+            jobsheet.append_row(['Timestamp', 'Line', 'Progress', 'Status', 'Task'])
             jobs.append_row([epochtime, epochtime, '', 0, 0, name])
 
         # Update job info
         rowidx = jobs.find(name).row
+        row = jobs.row_values(rowidx)
         completed = False
-        fp = int(jobs.cell(rowidx, FP_COL).value)
+        fp = int(row[FP_COL-1])
         fd = open(f, "r")
         fd.seek(fp)
-        percentage = jobs.cell(rowidx, PROGRESS_COL).value
+        percentage = float(row[PROGRESS_COL-1])
         for line in fd.readlines():
-            if not line.strip():
-                continue
-            line_progress = findprogress(line)
-            if line_progress > 0:
-                percentage = line_progress
-            jobsheet.append_row([epochtime, line[:-1]])
-
+            if line.strip():
+                status = "=D3"
+                task = "=E3"
+                if line.startswith("status:") or line.startswith("Status:"):
+                    status = line[len("status:"):].strip()
+                if line.startswith("task:") or line.startswith("Task:"):
+                    task = line[len("task:"):].strip()
+                line_progress = findprogress(line)
+                if line_progress > 0:
+                    percentage = line_progress
+                jobsheet.insert_row([epochtime, line[:-1], percentage, status, task], 2, value_input_option='USER_ENTERED')
         if percentage == 100:
             completed = True
             # FIXME: Other completion criteria
             jobsmap.update_cell(currjobs.index(name)+1, 3, 'Yes')
         fp = fd.tell()
-        jobs.update_cell(rowidx, UPDATED_COL, epochtime)
+        updated_cells = [
+                Cell(rowidx, UPDATED_COL, epochtime),
+                Cell(rowidx, PROGRESS_COL, percentage),
+                Cell(rowidx, FP_COL, fp)
+                ]
         if completed:
-            jobs.update_cell(rowidx, COMPLETED_COL, epochtime)
-        jobs.update_cell(rowidx, PROGRESS_COL, percentage)
-        jobs.update_cell(rowidx, FP_COL, fp)
+            updated_cells.append(Cell(rowidx, COMPLETED_COL, epochtime))
+        jobs.update_cells(updated_cells)
     lastupdate = currtime
 
 while True:

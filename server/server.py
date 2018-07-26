@@ -10,6 +10,7 @@ MAX_JOBS = 5
 MAX_LINES = 10
 SHEET_TITLE = "Process Tracker Data"
 
+STATUS_NEEDS_AUTH = 401
 UPDATED_COL = 2
 COMPLETED_COL = 3
 PROGRESS_COL = 4
@@ -52,32 +53,36 @@ def login():
     credentials = ServiceAccountCredentials.from_json_keyfile_name('auth.json', scope)
     return gspread.authorize(credentials)
 
-gc = login()
-
-# ss.del_worksheet(ss.worksheet("_Jobs"))
-# ss.del_worksheet(ss.worksheet("_JobMap"))
-
-try:
-    ss = gc.open(SHEET_TITLE)
-except gspread.SpreadsheetNotFound:
-    ss = gc.create(SHEET_TITLE)
-    gc.insert_permission(ss.id, None, perm_type='anyone', role='reader')
+def reauth():
+    ss = None
+    gc = login()
+    try:
+        ss = gc.open(SHEET_TITLE)
+        #ss.share('edward64@gmail.com', perm_type='user', role='writer')
+    except gspread.SpreadsheetNotFound:
+        ss = gc.create(SHEET_TITLE)
+        gc.insert_permission(ss.id, None, perm_type='anyone', role='reader')
+    return ss
     
-try:
-    jobs = ss.worksheet("_Jobs")
-    jobsmap = ss.worksheet("_JobMap")
-except gspread.WorksheetNotFound:
-    jobs = ss.add_worksheet("_Jobs", 101, 4)
-    jobs.append_row(["Created", "Updated", "Completed", "Progress", "FP", "Name"])
-    jobsmap = ss.add_worksheet("_JobMap", MAX_JOBS+1, 3)
-    jobsmap.append_row(["SheetID", "JobName", "Completed"])
-    for i in range(MAX_JOBS):
-        jobsmap.append_row(["Sheet%d"%(i+1), ".", "No"])
 
 lastupdate = 0
+ss = reauth()
+
 def updatefiles():
     global lastupdate
     currtime = time.time()
+
+    try:
+        jobs = ss.worksheet("_Jobs")
+        jobsmap = ss.worksheet("_JobMap")
+    except gspread.WorksheetNotFound:
+        jobs = ss.add_worksheet("_Jobs", 101, 4)
+        jobs.append_row(["Created", "Updated", "Completed", "Progress", "FP", "Name"])
+        jobsmap = ss.add_worksheet("_JobMap", MAX_JOBS+1, 3)
+        jobsmap.append_row(["SheetID", "JobName", "Completed"])
+        for i in range(MAX_JOBS):
+            jobsmap.append_row(["Sheet%d"%(i+1), ".", "No"])
+
     files = [f for f in os.listdir(LOGS_DIR) if f.endswith(LOGS_EXTENSION)]
 
     for f in files:
@@ -162,5 +167,12 @@ def updatefiles():
     lastupdate = currtime
 
 while True:
-    updatefiles()
+    try:
+        updatefiles()
+    except gspread.exceptions.APIError as err:
+        print(err)
+        print(err.response)
+        if err.response.status_code == STATUS_NEEDS_AUTH:
+            ss = reauth()
+
     time.sleep(CHECK_INTERVAL)

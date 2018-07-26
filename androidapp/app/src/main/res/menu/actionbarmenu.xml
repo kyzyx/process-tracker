@@ -3,6 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/refresh_menuitem"
+        android:icon="@android:drawable/ic_popup_sync"
+        android:title="Refresh"
+        android:onClick="onRefreshClick"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/settings_menuitem"
         android:icon="@android:drawable/ic_menu_manage"
         android:title="Settings"

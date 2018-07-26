@@ -64,13 +64,14 @@ def reauth():
         gc.insert_permission(ss.id, None, perm_type='anyone', role='reader')
     return ss
     
+    #ss.del_worksheet(ss.worksheet("_Jobs"))
+    #ss.del_worksheet(ss.worksheet("_JobMap"))
 
 lastupdate = 0
 ss = reauth()
 
 def updatefiles():
     global lastupdate
-    currtime = time.time()
 
     try:
         jobs = ss.worksheet("_Jobs")
@@ -86,6 +87,7 @@ def updatefiles():
     files = [f for f in os.listdir(LOGS_DIR) if f.endswith(LOGS_EXTENSION)]
 
     for f in files:
+        currtime = time.time()
         epochtime = currtime/(60*60*24) + 25569
         name = f[:-len(LOGS_EXTENSION)]
         if name == ".":

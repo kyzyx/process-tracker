@@ -64,6 +64,7 @@ public class Main2Activity extends AppCompatActivity {
         final String sheeturl = prefs.getString("sheets_url", "");
         final String apikey = getString(R.string.gapikey);
 
+        if (sheeturl.isEmpty()) return;
         requestTask = new JobsListRequestTask(apikey, sheeturl, new JobsListRequestTask.JobsListRequestCallback() {
             @Override
             public void processResponse(JobsList l) {

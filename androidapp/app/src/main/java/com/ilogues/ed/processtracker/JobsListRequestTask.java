@@ -39,7 +39,7 @@ public class JobsListRequestTask extends AsyncTask<Void, Void, JobsList> {
     protected JobsList doInBackground(Void... voids) {
         JobsList ret = new JobsList();
         try {
-            String range = String.format("_JobMap!A2:C6");
+            String range = String.format("_JobMap!A2:D6");
             String params = "dateTimeRenderOption=FORMATTED_STRING&key=" + apikey;
             URL url = new URL(SHEETSAPI + sheetId + "/values/" + range + "?" + params);
             Log.i("JobsListRequestTask", url.getPath());
@@ -61,8 +61,10 @@ public class JobsListRequestTask extends AsyncTask<Void, Void, JobsList> {
                                 String sheetName = reader.nextString();
                                 String jobName = reader.nextString();
                                 String completed = reader.nextString();
+                                String started = "0";
+                                if (reader.hasNext()) started = reader.nextString();
                                 if (jobName.compareTo(".") != 0) {
-                                    ret.addJob(sheetName, jobName, completed.compareTo("Yes") == 0);
+                                    ret.addJob(sheetName, jobName, completed.compareTo("Yes") == 0, started);
                                 }
                                 reader.endArray();
                             }

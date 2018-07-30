@@ -13,19 +13,21 @@ public class JobsList {
     }
 
     public class Job {
-        public Job(String sheetName, String jobName, boolean completed) {
+        public Job(String sheetName, String jobName, boolean completed, String started) {
             this.sheetName = sheetName;
             this.jobName = jobName;
+            this.started = started;
             this.completed = completed;
         }
         public String sheetName;
         public String jobName;
+        public String started;
         public boolean completed;
     }
 
     public List<Job> jobs;
 
-    void addJob(String sheetName, String jobName, boolean completed) {
-        jobs.add(new Job(sheetName, jobName, completed));
+    void addJob(String sheetName, String jobName, boolean completed, String started) {
+        jobs.add(new Job(sheetName, jobName, completed, started));
     }
 }

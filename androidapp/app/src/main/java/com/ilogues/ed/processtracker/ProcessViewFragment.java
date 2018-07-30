@@ -38,6 +38,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         View v = inflater.inflate(R.layout.processview, container);
         titlebar = v.findViewById(R.id.titleView);
         lines = v.findViewById(R.id.outputView);
+        lines.setHorizontallyScrolling(true);
         progressbar = v.findViewById(R.id.taskProgressBar);
         return v;
     }

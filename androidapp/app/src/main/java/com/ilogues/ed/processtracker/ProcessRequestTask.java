@@ -65,7 +65,8 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
                                 reader.beginArray();
                                 String timestamp = reader.nextString();
                                 String line = reader.nextString();
-                                lines = line + "\n" + lines;
+                                if (lines.isEmpty()) lines = line;
+                                else lines = line + "\n" + lines;
                                 String status = "";
                                 String task = "";
                                 if (reader.hasNext()) progress = reader.nextDouble();

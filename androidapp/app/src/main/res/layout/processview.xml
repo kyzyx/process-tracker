@@ -31,6 +31,6 @@
         android:ems="10"
         android:linksClickable="true"
         android:autoLink="web"
-        android:maxLines="5" />
+        />
 
 </android.widget.LinearLayout>

@@ -2,6 +2,7 @@ package com.ilogues.ed.processtracker;
 
 import android.content.SharedPreferences;
 import android.preference.EditTextPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.os.Bundle;
@@ -26,8 +27,8 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
         sharedPreferences = getPreferenceManager().getSharedPreferences();
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
-        Preference p = this.findPreference("sheets_url");
-        updateSummary((EditTextPreference) p);
+        updateSummary((EditTextPreference) this.findPreference("sheets_url"));
+        updateSummary((ListPreference) this.findPreference("refresh_every"));
     }
 
     @Override
@@ -39,10 +40,15 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
                                           String key) {
-        Preference p = this.findPreference("sheets_url");
-        updateSummary((EditTextPreference) p);
+        Preference urlpref = this.findPreference("sheets_url");
+        updateSummary((EditTextPreference) urlpref);
+        Preference refpref = this.findPreference("refresh_every");
+        updateSummary((ListPreference) refpref);
     }
     private void updateSummary(EditTextPreference preference) {
         preference.setSummary(preference.getText());
+    }
+    private void updateSummary(ListPreference preference) {
+        preference.setSummary(preference.getEntry());
     }
 }

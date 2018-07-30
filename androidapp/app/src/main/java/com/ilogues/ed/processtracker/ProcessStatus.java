@@ -11,8 +11,14 @@ public class ProcessStatus {
     public String timestamp;
     public double progress;
 
-    public ProcessStatus() {}
+    public ProcessStatus() {
+        this("");
+    }
     public ProcessStatus(String lines) {
+        this.progress = -1;
         this.lines = lines;
+        this.status = "";
+        this.task = "";
+        this.timestamp = "";
     }
 }

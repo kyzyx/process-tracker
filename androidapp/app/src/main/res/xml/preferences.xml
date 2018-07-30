@@ -2,10 +2,20 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditTextPreference
-        android:defaultValue="Default value"
+        android:defaultValue=""
         android:key="sheets_url"
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="Sheets URL"
         android:visibility="visible" />
+    <ListPreference
+        android:defaultValue="10"
+        android:entries="@array/refresh_intervals"
+        android:entryValues="@array/refresh_intervals_seconds"
+        android:key="refresh_every"
+        android:title="Refresh every..." />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="notifications"
+        android:title="Notifications Enabled" />
 </PreferenceScreen>

@@ -5,5 +5,5 @@ package com.ilogues.ed.processtracker;
  */
 
 public interface ProcessRequestCallback {
-    public void processRequest(ProcessStatus status);
+    public void processResponse(ProcessStatus status);
 }

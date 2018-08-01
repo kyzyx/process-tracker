@@ -12,6 +12,7 @@
         android:layout_weight="0"
         android:background="@color/colorAccent"
         android:singleLine="true"
+        android:padding="2dp"
         android:textColor="@android:color/white" />
 
     <ProgressBar
@@ -28,10 +29,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:ems="10"
-        android:linksClickable="true"
         android:autoLink="web"
-        />
+        android:ems="10"
+        android:padding="2dp"
+        android:linksClickable="true" />
 
     <TextView
         android:id="@+id/timestampView"

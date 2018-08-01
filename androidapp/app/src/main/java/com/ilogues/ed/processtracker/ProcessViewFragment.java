@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.text.DateFormat;
+
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -24,8 +26,9 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
 
     TextView titlebar;
     TextView lines;
+    TextView updatedbar;
     ProgressBar progressbar;
-
+    Context context;
     public ProcessViewFragment() {
         // Required empty public constructor
     }
@@ -40,12 +43,14 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         lines = v.findViewById(R.id.outputView);
         lines.setHorizontallyScrolling(true);
         progressbar = v.findViewById(R.id.taskProgressBar);
+        updatedbar = v.findViewById(R.id.timestampView);
         return v;
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        this.context = context;
     }
 
     @Override
@@ -65,17 +70,23 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         if (!status.status.isEmpty()) title += "(" + status.status + ")";
         titlebar.setText(title);
         lines.setText(status.lines);
+        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG);
+        String updated;
         int p = (int) Math.round(status.progress);
         progressbar.setProgress(p);
         if (p == 100) {
             titlebar.setBackgroundColor(Color.LTGRAY);
             titlebar.setTextColor(Color.BLACK);
+            updated = "Completed";
         } else if (status.status.compareToIgnoreCase("error") == 0) {
             titlebar.setBackgroundColor(Color.RED);
             titlebar.setTextColor(Color.WHITE);
+            updated = "Terminated";
         } else {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorAccent));
             titlebar.setTextColor(Color.WHITE);
+            updated = "Last updated";
         }
+        updatedbar.setText(updated + ": " + dateFormat.format(status.timestamp));
     }
 }

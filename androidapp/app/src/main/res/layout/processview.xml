@@ -33,4 +33,16 @@
         android:autoLink="web"
         />
 
+    <TextView
+        android:id="@+id/timestampView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:background="@color/colorTimestampBar"
+        android:maxLines="1"
+        android:padding="2dp"
+        android:textSize="10sp"
+        android:textStyle="italic"
+        tools:textColor="@android:color/darker_gray" />
+
 </android.widget.LinearLayout>

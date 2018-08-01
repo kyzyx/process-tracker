@@ -14,6 +14,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -66,6 +68,11 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     private static boolean isErrorStatus(String status) {
         return status.length() >= 5 && status.substring(0,5).compareToIgnoreCase("error") == 0;
     }
+    private static Date inactivetime() {
+        final Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR, -8);
+        return cal.getTime();
+    }
     @Override
     public void processResponse(ProcessStatus status) {
         String title = jobname;
@@ -85,6 +92,10 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
             titlebar.setBackgroundColor(Color.RED);
             titlebar.setTextColor(Color.WHITE);
             updated = "Terminated";
+        } else if (status.timestamp.before(inactivetime())) {
+            titlebar.setBackgroundColor(Color.LTGRAY);
+            titlebar.setTextColor(Color.BLACK);
+            updated = "Last updated";
         } else {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorAccent));
             titlebar.setTextColor(Color.WHITE);

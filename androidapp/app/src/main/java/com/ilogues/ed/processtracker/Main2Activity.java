@@ -119,8 +119,12 @@ public class Main2Activity extends AppCompatActivity {
         }
     }
     private void NotifyCompletion(String jobName, String started) {
-        NotificationTask t = new NotificationTask(jobName, started);
-        t.execute();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean notificationsenabled = prefs.getBoolean("notifications", false);
+        if (notificationsenabled) {
+            NotificationTask t = new NotificationTask(jobName, started);
+            t.execute();
+        }
     }
 
     public void onRefreshClick(MenuItem mi) {

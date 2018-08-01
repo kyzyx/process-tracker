@@ -63,11 +63,14 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         webtask.execute();
     }
 
+    private static boolean isErrorStatus(String status) {
+        return status.length() >= 5 && status.substring(0,5).compareToIgnoreCase("error") == 0;
+    }
     @Override
     public void processResponse(ProcessStatus status) {
         String title = jobname;
-        if (!status.task.isEmpty()) title += status.task;
-        if (!status.status.isEmpty()) title += "(" + status.status + ")";
+        if (!status.task.isEmpty()) title += " " + status.task;
+        if (!status.status.isEmpty()) title += " (" + status.status + ")";
         titlebar.setText(title);
         lines.setText(status.lines);
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG);
@@ -78,7 +81,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
             titlebar.setBackgroundColor(Color.LTGRAY);
             titlebar.setTextColor(Color.BLACK);
             updated = "Completed";
-        } else if (status.status.compareToIgnoreCase("error") == 0) {
+        } else if (isErrorStatus(status.status)) {
             titlebar.setBackgroundColor(Color.RED);
             titlebar.setTextColor(Color.WHITE);
             updated = "Terminated";

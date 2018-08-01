@@ -69,6 +69,9 @@ def reauth():
 
 lastupdate = 0
 ss = reauth()
+print("=============================================================")
+print("Google Sheets ID: %s"%ss.id)
+print("=============================================================")
 
 def updatefiles():
     global lastupdate

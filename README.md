@@ -29,12 +29,15 @@ Install dependencies:
 Run server (point at logs directory)
 > $ python server/server.py logs/
 
-FIXME: User account (need email) vs public sheet
+Take note of the Google Sheets ID it outputs
 
-FIXME: How to get sheet location to android app?
+### Android app APK setup
+1. Go to https://console.developers.google.com/apis/credentials, click on Create credentials, and add an API key.
+2. Add this key to the empty field in androidapp/app/src/main/res/values/keys.xml
+3. Build and deploy
 
 ### Android app setup
-FIXME
+1. Hit the wrench in the top right and set the Sheets URL to the Google Sheets ID from the server process
 
 ## Rich output
 By default, the app will simply display the last N lines of output from each job. However, it will also display more useful information if it detects it.

@@ -85,20 +85,24 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         int p = (int) Math.round(status.progress);
         progressbar.setProgress(p);
         if (p == 100) {
-            titlebar.setBackgroundColor(Color.LTGRAY);
+            titlebar.setBackgroundColor(getResources().getColor(R.color.colorComplete));
             titlebar.setTextColor(Color.BLACK);
+            progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_complete));
             updated = "Completed";
         } else if (isErrorStatus(status.status)) {
             titlebar.setBackgroundColor(Color.RED);
             titlebar.setTextColor(Color.WHITE);
+            progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_err));
             updated = "Terminated";
         } else if (status.timestamp.before(inactivetime())) {
-            titlebar.setBackgroundColor(Color.LTGRAY);
+            titlebar.setBackgroundColor(getResources().getColor(R.color.colorInactive));
             titlebar.setTextColor(Color.BLACK);
+            progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_main));
             updated = "Last updated";
         } else {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorAccent));
             titlebar.setTextColor(Color.WHITE);
+            progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_main));
             updated = "Last updated";
         }
         updatedbar.setText(updated + ": " + dateFormat.format(status.timestamp));

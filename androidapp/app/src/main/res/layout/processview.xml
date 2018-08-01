@@ -22,7 +22,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:max="100"
-        android:min="0" />
+        android:min="0"
+        android:progressDrawable="@drawable/progress_main" />
 
     <TextView
         android:id="@+id/outputView"
@@ -31,8 +32,9 @@
         android:layout_weight="1"
         android:autoLink="web"
         android:ems="10"
+        android:linksClickable="true"
         android:padding="2dp"
-        android:linksClickable="true" />
+        android:textColorLink="@android:color/holo_blue_dark" />
 
     <TextView
         android:id="@+id/timestampView"

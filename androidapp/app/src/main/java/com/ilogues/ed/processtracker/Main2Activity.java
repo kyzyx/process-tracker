@@ -145,7 +145,8 @@ public class Main2Activity extends AppCompatActivity {
                     ProcessViewFragment v = frags.get(i);
                     if (i < l.jobs.size()) {
                         v.setJobname(l.jobs.get(i).jobName);
-                        v.update(apikey, sheeturl, l.jobs.get(i).sheetName);
+                        if (v.getLastUpdateTime().before(l.jobs.get(i).lastupdated))
+                            v.update(apikey, sheeturl, l.jobs.get(i).sheetName);
                     } else {
                         FragmentManager fm = getFragmentManager();
                         fm.beginTransaction().hide(v).commitAllowingStateLoss();

@@ -1,6 +1,7 @@
 package com.ilogues.ed.processtracker;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,21 +14,23 @@ public class JobsList {
     }
 
     public class Job {
-        public Job(String sheetName, String jobName, boolean completed, String started) {
+        public Job(String sheetName, String jobName, boolean completed, String started, Date lastupdated) {
             this.sheetName = sheetName;
             this.jobName = jobName;
             this.started = started;
             this.completed = completed;
+            this.lastupdated = lastupdated;
         }
         public String sheetName;
         public String jobName;
         public String started;
         public boolean completed;
+        public Date lastupdated;
     }
 
     public List<Job> jobs;
 
-    void addJob(String sheetName, String jobName, boolean completed, String started) {
-        jobs.add(new Job(sheetName, jobName, completed, started));
+    void addJob(String sheetName, String jobName, boolean completed, String started, Date timestamp) {
+        jobs.add(new Job(sheetName, jobName, completed, started, timestamp));
     }
 }

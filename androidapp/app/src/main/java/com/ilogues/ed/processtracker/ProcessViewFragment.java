@@ -23,6 +23,7 @@ import java.util.Date;
 public class ProcessViewFragment extends Fragment implements ProcessRequestCallback {
 
     ProcessRequestTask webtask;
+    ProcessStatus lastProcessStatus;
 
     String jobname;
 
@@ -33,9 +34,11 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     Context context;
     public ProcessViewFragment() {
         // Required empty public constructor
+        lastProcessStatus = new ProcessStatus();
     }
 
     public void setJobname(String jobname) { this.jobname = jobname; }
+    public Date getLastUpdateTime() { return lastProcessStatus.timestamp; }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,6 +78,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     }
     @Override
     public void processResponse(ProcessStatus status) {
+        this.lastProcessStatus = status;
         String title = jobname;
         if (!status.task.isEmpty()) title += " " + status.task;
         if (!status.status.isEmpty()) title += " (" + status.status + ")";

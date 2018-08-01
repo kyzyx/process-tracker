@@ -8,6 +8,7 @@ import android.util.Log;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Date;
 
 /**
  * Created by edzhang on 7/25/18.
@@ -15,6 +16,7 @@ import java.net.URL;
 
 public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
     private static String SHEETSAPI = "https://sheets.googleapis.com/v4/spreadsheets/";
+    private static int DAYS_BETWEEN_EPOCHS = 25569; // Dec 30 1899 to Jan 1 1970
 
     private String sheetId;
     private String sheetName;
@@ -43,7 +45,7 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
         ProcessStatus ret = new ProcessStatus();
         try {
             String range = String.format("%s!A2:E%d", sheetName, num_lines+1);
-            String params = "dateTimeRenderOption=FORMATTED_STRING&key=" + apikey;
+            String params = "valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=" + apikey;
             URL url = new URL(SHEETSAPI + sheetId + "/values/" + range + "?" + params);
             Log.i("ProcessRequestTask", url.getPath());
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -63,7 +65,10 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
                             double progress = 0;
                             while (reader.hasNext()) {
                                 reader.beginArray();
-                                String timestamp = reader.nextString();
+                                double serialdate = Double.parseDouble(reader.nextString());
+                                serialdate -= DAYS_BETWEEN_EPOCHS;
+                                long seconds = (long) (serialdate * 24 * 60 * 60);
+                                Date timestamp = new Date(seconds*1000L);
                                 String line = reader.nextString();
                                 if (lines.isEmpty()) lines = line;
                                 else lines = line + "\n" + lines;
@@ -74,7 +79,7 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
                                 if (reader.hasNext()) task = reader.nextString();
 
                                 if (ret.progress < 0) ret.progress = progress;
-                                if (ret.timestamp.isEmpty()) ret.timestamp = timestamp;
+                                if (ret.timestamp.before(timestamp)) ret.timestamp = timestamp;
                                 if (ret.status.isEmpty()) ret.status = status;
                                 if (ret.task.isEmpty()) ret.task = task;
                                 reader.endArray();

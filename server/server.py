@@ -82,10 +82,10 @@ def updatefiles():
     except gspread.WorksheetNotFound:
         jobs = ss.add_worksheet("_Jobs", 101, 4)
         jobs.append_row(["Created", "Updated", "Completed", "Progress", "FP", "Name"])
-        jobsmap = ss.add_worksheet("_JobMap", MAX_JOBS+1, 3)
-        jobsmap.append_row(["SheetID", "JobName", "Completed"])
+        jobsmap = ss.add_worksheet("_JobMap", MAX_JOBS+1, 5)
+        jobsmap.append_row(["SheetID", "JobName", "Completed", "Started", "Last Updated"])
         for i in range(MAX_JOBS):
-            jobsmap.append_row(["Sheet%d"%(i+1), ".", "No"])
+            jobsmap.append_row(["Sheet%d"%(i+1), ".", "No", "0", "=INDIRECT(A2&\"!A2\", TRUE)"])
 
     files = [f for f in os.listdir(LOGS_DIR) if f.endswith(LOGS_EXTENSION)]
 
@@ -117,7 +117,7 @@ def updatefiles():
                     idx = currcompletion.index('Yes')
                 except ValueError:
                     continue
-            jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No')])
+            jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No'), Cell(idx+1,4,epochtime)])
             currjobs[idx] = name
             sheetid = idx2sheet(idx)
             try:
@@ -139,7 +139,7 @@ def updatefiles():
         # TODO: Check previous N characters match previous line
         if filelen < fp:
             # This job got restarted; update status
-            jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No')])
+            jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No'), Cell(idx+1, 4, epochtime)])
             jobsheet.clear()
             jobsheet.append_row(['Timestamp', 'Line', 'Progress', 'Status', 'Task'])
             jobs.update_cells([Cell(rowidx, 1, epochtime),

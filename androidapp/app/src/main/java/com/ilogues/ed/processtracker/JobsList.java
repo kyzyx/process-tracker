@@ -1,6 +1,9 @@
 package com.ilogues.ed.processtracker;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -14,20 +17,26 @@ public class JobsList {
     }
 
     public enum Status {
-        COMPLETED, RUNNING, ERROR
+        RUNNING,  ERROR, COMPLETED, DORMANT
     }
     public static Status stringToStatus(String s) {
         if (s.compareTo("Yes") == 0) return Status.COMPLETED;
         else if (s.compareTo("Error") == 0) return Status.ERROR;
         else return Status.RUNNING;
     }
-    public class Job {
+    private static Date inactivetime() {
+        final Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR, -8);
+        return cal.getTime();
+    }
+    public class Job implements Comparable<Job>{
         public Job(String sheetName, String jobName, String started, Date lastupdated, Status status) {
             this.sheetName = sheetName;
             this.jobName = jobName;
             this.started = started;
             this.status = status;
             this.lastupdated = lastupdated;
+            if (status == Status.RUNNING && lastupdated.before(inactivetime())) status = Status.DORMANT;
         }
         public boolean isCompleted() { return status == Status.COMPLETED; }
         public boolean isError() { return status == Status.ERROR; }
@@ -36,6 +45,18 @@ public class JobsList {
         public String started;
         public Status status;
         public Date lastupdated;
+
+        @Override
+        public int compareTo(@NonNull Job job) {
+            int statuscmp = status.compareTo(job.status);
+            if (statuscmp != 0) return statuscmp;
+
+            if (status == Status.RUNNING) {
+                return Double.parseDouble(started) < Double.parseDouble(job.started)?1:-1;
+            } else {
+                return lastupdated.compareTo(job.lastupdated);
+            }
+        }
     }
 
     public List<Job> jobs;

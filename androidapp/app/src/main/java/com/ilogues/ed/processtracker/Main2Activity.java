@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.Menu;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Main2Activity extends AppCompatActivity {
@@ -100,8 +101,7 @@ public class Main2Activity extends AppCompatActivity {
         requestTask = new JobsListRequestTask(apikey, sheeturl, new JobsListRequestTask.JobsListRequestCallback() {
             @Override
             public void processResponse(JobsList l) {
-                // TODO: Sort by updated? (or do that in request)
-                // TODO: Keep the same fragment for the same job for display settings
+                Collections.sort(l.jobs);
                 for (int i = 0; i < frags.size(); i++) {
                     ProcessViewFragment v = frags.get(i);
                     if (i < l.jobs.size()) {

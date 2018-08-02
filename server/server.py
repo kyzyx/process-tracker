@@ -141,7 +141,7 @@ def updatefiles():
             # This job got restarted; update status
             jobsmap.update_cells([Cell(idx+1, 2, name), Cell(idx+1, 3, 'No'), Cell(idx+1, 4, epochtime)])
             jobsheet.clear()
-            jobsheet.append_row(['Timestamp', 'Line', 'Progress', 'Status', 'Task'])
+            jobsheet.append_row(['Timestamp', 'Line', 'Progress', 'Status', 'Task', "Rate", "Median Rate", "Rate Ratio", "Smoothed Rate", "ETA"])
             jobs.update_cells([Cell(rowidx, 1, epochtime),
                                Cell(rowidx, UPDATED_COL, epochtime),
                                Cell(rowidx, COMPLETED_COL, ''),
@@ -166,7 +166,14 @@ def updatefiles():
                 line_progress = findprogress(line)
                 if line_progress > 0:
                     percentage = line_progress
-                linesbuffer.push([epochtime, line[:-1], percentage, status if status else "=D3", task if task else "=E3"])
+                line = [epochtime, line[:-1], percentage, status if status else "=D3", task if task else "=E3"]
+                line.append("=if(ISBLANK(C3),0,if(OR(A2=A3,C2=C3),F3,(A2-A3)/(C2-C3)))")  # Rate
+                line.append("=MEDIAN(F2:F11)")                                            # Median Rate
+                line.append("=if(F2=0,0,G2/F2)")                                          # Rate Ratio
+                cond = "H2:H11,\">0.95\",H2:H11, \"<1.05\""
+                line.append("=if(COUNTIFS(%s)=0,H2,AVERAGEIFS(F2:F11,%s))"%(cond, cond))  # Smoothed Rate
+                line.append("=if(I2=0,\"inf\",A2+(100-C2)*I2)")                           # ETA
+                linesbuffer.push(line)
 
         for line in linesbuffer:
             jobsheet.insert_row(line, 2, value_input_option='USER_ENTERED')

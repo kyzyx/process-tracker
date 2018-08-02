@@ -171,6 +171,9 @@ def updatefiles():
         for line in linesbuffer:
             jobsheet.insert_row(line, 2, value_input_option='USER_ENTERED')
 
+        if status.startswith("Error") or status.startswith("error"):
+            jobsmap.update_cell(currjobs.index(name)+1, 3, 'Error')
+
         if percentage == 100:
             completed = True
             # FIXME: Other completion criteria

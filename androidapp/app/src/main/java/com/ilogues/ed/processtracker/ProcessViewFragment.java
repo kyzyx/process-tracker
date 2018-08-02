@@ -88,7 +88,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         String updated;
         int p = (int) Math.round(status.progress);
         progressbar.setProgress(p);
-        if (p == 100) {
+        if (status.progress == 100) {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorComplete));
             titlebar.setTextColor(Color.BLACK);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_complete));

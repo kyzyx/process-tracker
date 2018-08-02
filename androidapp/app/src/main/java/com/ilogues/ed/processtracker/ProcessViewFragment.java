@@ -71,9 +71,9 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     private static boolean isErrorStatus(String status) {
         return status.length() >= 5 && status.substring(0,5).compareToIgnoreCase("error") == 0;
     }
-    private static Date inactivetime() {
+    private static Date hoursago(int hours) {
         final Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.HOUR, -8);
+        cal.add(Calendar.HOUR, -hours);
         return cal.getTime();
     }
     @Override
@@ -89,7 +89,8 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         int p = (int) Math.round(status.progress);
         progressbar.setProgress(p);
         if (status.progress == 100) {
-            titlebar.setBackgroundColor(getResources().getColor(R.color.colorComplete));
+            if (status.timestamp.before(hoursago(16))) titlebar.setBackgroundColor(getResources().getColor(R.color.colorInactive));
+            else titlebar.setBackgroundColor(getResources().getColor(R.color.colorComplete));
             titlebar.setTextColor(Color.BLACK);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_complete));
             updated = "Completed";
@@ -98,7 +99,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
             titlebar.setTextColor(Color.WHITE);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_err));
             updated = "Terminated";
-        } else if (status.timestamp.before(inactivetime())) {
+        } else if (status.timestamp.before(hoursago(8))) {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorInactive));
             titlebar.setTextColor(Color.BLACK);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_main));

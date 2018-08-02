@@ -31,6 +31,7 @@ public class Main2Activity extends AppCompatActivity {
     Handler handler;
 
     static final int JOB_ID = 7428;
+    static final int IMMEDIATE_JOB_ID = 7429;
     List<ProcessViewFragment> frags;
 
     @Override
@@ -71,6 +72,17 @@ public class Main2Activity extends AppCompatActivity {
                 .build());
     }
 
+    public void checkNotificationsImmediate() {
+        JobScheduler jobScheduler =
+                (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(new JobInfo.Builder(IMMEDIATE_JOB_ID,
+                new ComponentName(this, UpdateService.class))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setMinimumLatency(1)
+                .setOverrideDeadline(1)
+                .build());
+    }
+
     // Menu icons are inflated just as they were with actionbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -93,6 +105,7 @@ public class Main2Activity extends AppCompatActivity {
                 for (int i = 0; i < frags.size(); i++) {
                     ProcessViewFragment v = frags.get(i);
                     if (i < l.jobs.size()) {
+                        if (l.jobs.get(i).status != JobsList.Status.RUNNING) checkNotificationsImmediate();
                         v.setJobname(l.jobs.get(i).jobName);
                         if (v.getLastUpdateTime().before(l.jobs.get(i).lastupdated))
                             v.update(apikey, sheeturl, l.jobs.get(i).sheetName);

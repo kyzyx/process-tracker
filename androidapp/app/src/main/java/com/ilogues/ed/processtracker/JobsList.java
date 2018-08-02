@@ -13,24 +13,34 @@ public class JobsList {
         jobs = new ArrayList<Job>();
     }
 
+    public enum Status {
+        COMPLETED, RUNNING, ERROR
+    }
+    public static Status stringToStatus(String s) {
+        if (s.compareTo("Yes") == 0) return Status.COMPLETED;
+        else if (s.compareTo("Error") == 0) return Status.ERROR;
+        else return Status.RUNNING;
+    }
     public class Job {
-        public Job(String sheetName, String jobName, boolean completed, String started, Date lastupdated) {
+        public Job(String sheetName, String jobName, String started, Date lastupdated, Status status) {
             this.sheetName = sheetName;
             this.jobName = jobName;
             this.started = started;
-            this.completed = completed;
+            this.status = status;
             this.lastupdated = lastupdated;
         }
+        public boolean isCompleted() { return status == Status.COMPLETED; }
+        public boolean isError() { return status == Status.ERROR; }
         public String sheetName;
         public String jobName;
         public String started;
-        public boolean completed;
+        public Status status;
         public Date lastupdated;
     }
 
     public List<Job> jobs;
 
-    void addJob(String sheetName, String jobName, boolean completed, String started, Date timestamp) {
-        jobs.add(new Job(sheetName, jobName, completed, started, timestamp));
+    void addJob(String sheetName, String jobName, String started, Date timestamp, Status status) {
+        jobs.add(new Job(sheetName, jobName, started, timestamp, status));
     }
 }

@@ -41,10 +41,11 @@ public class UpdateService extends JobService {
             notificationManager.createNotificationChannel(channel);
         }
     }
-    private class NotificationTask extends AsyncTask<Void, Void, Void>
-    {
+    private class NotificationTask extends AsyncTask<Void, Void, Void> {
         String jobid;
         String jobName;
+        String status;
+        int iconid;
 
         public NotificationTask(String jobName, String started) {
             this.jobid = jobName + "_" + started;
@@ -57,17 +58,16 @@ public class UpdateService extends JobService {
             JobNotificationRecord rec = db.jnDao().findRecord(jobid);
             if (rec == null) {
                 Log.i("UpdateService", "NotifyCompletion: notify " + jobid);
-                // Create an explicit intent for an Activity in your app
                 Intent intent = new Intent(UpdateService.this, Main2Activity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 PendingIntent pendingIntent = PendingIntent.getActivity(UpdateService.this, 0, intent, 0);
                 NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(UpdateService.this, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_completed)
-                        .setContentTitle("Process Completed")
-                        .setContentText("Process '" + jobName + "' completed.")
+                        .setSmallIcon(iconid)
+                        .setContentTitle("Process " + status)
+                        .setContentText("Process '" + jobName + "' " + status)
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setContentIntent(pendingIntent)
-                        .setAutoCancel(true);;
+                        .setAutoCancel(true);
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(UpdateService.this);
                 rec = new JobNotificationRecord(jobid);
                 notificationManager.notify(rec.hashCode(), mBuilder.build());
@@ -76,13 +76,26 @@ public class UpdateService extends JobService {
             return null;
         }
     }
+    private class CompletedNotificationTask extends NotificationTask {
+        public CompletedNotificationTask(String jobName, String started) {
+            super(jobName, started);
+            iconid = R.drawable.ic_completed;
+            status = "complete";
+        }
+    }
+    private class ErrorNotificationTask extends NotificationTask {
+        public ErrorNotificationTask(String jobName, String started) {
+            super(jobName, started);
+            iconid = R.drawable.ic_error;
+            status = "error";
+        }
+    }
 
     @Override
     public boolean onStartJob(final JobParameters params) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final String sheeturl = prefs.getString("sheets_url", "");
         final String apikey = getString(R.string.gapikey);
-        Log.i("UpdateService", "Started job");
         if (sheeturl.isEmpty()) {
             jobFinished(params, false);
             return false;
@@ -96,8 +109,11 @@ public class UpdateService extends JobService {
                 boolean notificationsenabled = prefs.getBoolean("notifications", false);
                 if (notificationsenabled) {
                     for (JobsList.Job job : l.jobs) {
-                        if (job.completed) {
-                            NotificationTask t = new NotificationTask(job.jobName, job.started);
+                        if (job.isCompleted()) {
+                            NotificationTask t = new CompletedNotificationTask(job.jobName, job.started);
+                            t.execute();
+                        } else if (job.isError()) {
+                            NotificationTask t = new ErrorNotificationTask(job.jobName, job.started);
                             t.execute();
                         }
                     }

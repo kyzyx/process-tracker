@@ -72,7 +72,7 @@ public class JobsListRequestTask extends AsyncTask<Void, Void, JobsList> {
                                     long seconds = (long) (serialdate * 24 * 60 * 60);
                                     Date timestamp = new Date(seconds*1000L);
 
-                                    ret.addJob(sheetName, jobName, completed.compareTo("Yes") == 0, started, timestamp);
+                                    ret.addJob(sheetName, jobName, started, timestamp, JobsList.stringToStatus(completed));
                                 }
                                 reader.endArray();
                             }

@@ -11,6 +11,7 @@ public class ProcessStatus {
     public String status;
     public String task;
     public Date timestamp;
+    public Date ETA;
     public double progress;
 
     public ProcessStatus() {
@@ -22,5 +23,6 @@ public class ProcessStatus {
         this.status = "";
         this.task = "";
         this.timestamp = new Date(0L);
+        this.ETA = new Date(0L);
     }
 }

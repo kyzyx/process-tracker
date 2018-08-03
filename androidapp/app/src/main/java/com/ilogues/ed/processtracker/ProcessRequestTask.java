@@ -40,14 +40,62 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
         super.onPreExecute();
     }
 
+    private static Date stringToDate(String s) {
+        double serialdate = Double.parseDouble(s);
+        serialdate -= DAYS_BETWEEN_EPOCHS;
+        long seconds = (long) (serialdate * 24 * 60 * 60);
+        return new Date(seconds*1000L);
+    }
+
+    private enum Range {
+        UNKNOWN, TIMESTAMP, INFO, LINES, ETA
+    }
+    private String readSingleCell(JsonReader reader) throws java.io.IOException {
+        String ret = "";
+        reader.beginArray();
+        reader.beginArray();
+        if (reader.hasNext()) ret = reader.nextString();
+        while (reader.hasNext()) reader.skipValue();     // ignore remaining cells
+        reader.endArray();
+        while (reader.hasNext()) reader.skipValue();     // ignore remaining rows
+        reader.endArray();
+        return ret;
+    }
+    private String readLinesInfo(JsonReader reader) throws java.io.IOException {
+        reader.beginArray();
+        String lines = "";
+        while (reader.hasNext()) {
+            reader.beginArray();
+            String line = reader.nextString();
+            if (lines.isEmpty()) lines = line;
+            else lines = line + "\n" + lines;
+            reader.endArray();
+        }
+        reader.endArray();
+        return lines;
+    }
+    private void readBaseInfo(JsonReader reader, ProcessStatus ret) throws java.io.IOException {
+        reader.beginArray();
+        reader.beginArray();
+        ret.progress = reader.nextDouble();
+        ret.status = reader.nextString();
+        ret.task = reader.nextString();
+        reader.endArray();
+        reader.endArray();
+    }
     @Override
     protected ProcessStatus doInBackground(Void... voids) {
         ProcessStatus ret = new ProcessStatus();
         try {
-            String range = String.format("%s!A2:E%d", sheetName, num_lines+1);
+            String inforange = String.format("%s!C2:E2", sheetName, num_lines + 1);
+            String etarange = String.format("%s!J2", sheetName);
+            String timestamprange = String.format("%s!A2", sheetName);
+            String linesrange = String.format("%s!B2:B%d", sheetName, num_lines + 1);
+
+            String ranges = "ranges=" + String.join("&ranges=", inforange, etarange, timestamprange, linesrange);
             String params = "valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=" + apikey;
-            URL url = new URL(SHEETSAPI + sheetId + "/values/" + range + "?" + params);
-            Log.i("ProcessRequestTask", url.getPath());
+            URL url = new URL(SHEETSAPI + sheetId + "/values:batchGet?" + ranges + "&" + params);
+            Log.i("ProcessRequestTask", url.toString());
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             try {
                 JsonReader reader = new JsonReader(new InputStreamReader(urlConnection.getInputStream()));
@@ -55,43 +103,57 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
                     reader.beginObject();
                     while (reader.hasNext()) {
                         String name = reader.nextName();
-                        if (name.equals("range")) {
-                            String cellrange = reader.nextString();
-                        } else if (name.equals("majorDimension")) {
-                            String dimension = reader.nextString();
-                        } else if (name.equals("values") && reader.peek() != JsonToken.NULL) {
+                        if (name.equals("spreadSheetId")) {
+                            String ssid = reader.nextString();
+                        } else if (name.equals("valueRanges")) {
                             reader.beginArray();
-                            String lines = "";
-                            double progress = 0;
                             while (reader.hasNext()) {
-                                reader.beginArray();
-                                double serialdate = Double.parseDouble(reader.nextString());
-                                serialdate -= DAYS_BETWEEN_EPOCHS;
-                                long seconds = (long) (serialdate * 24 * 60 * 60);
-                                Date timestamp = new Date(seconds*1000L);
-                                String line = reader.nextString();
-                                if (lines.isEmpty()) lines = line;
-                                else lines = line + "\n" + lines;
-                                String status = "";
-                                String task = "";
-                                if (reader.hasNext()) progress = reader.nextDouble();
-                                if (reader.hasNext()) status = reader.nextString();
-                                if (reader.hasNext()) task = reader.nextString();
-
-                                if (ret.progress < 0) ret.progress = progress;
-                                if (ret.timestamp.before(timestamp)) ret.timestamp = timestamp;
-                                if (ret.status.isEmpty()) ret.status = status;
-                                if (ret.task.isEmpty()) ret.task = task;
-                                reader.endArray();
+                                reader.beginObject();
+                                Range which = Range.UNKNOWN;
+                                while (reader.hasNext()) {
+                                    name = reader.nextName();
+                                    if (name.equals("range")) {
+                                        String s = reader.nextString();
+                                        if (s.compareTo(inforange) == 0) {
+                                            which = Range.INFO;
+                                        } else if (s.compareTo(etarange) == 0) {
+                                            which = Range.ETA;
+                                        } else if (s.compareTo(timestamprange) == 0) {
+                                            which = Range.TIMESTAMP;
+                                        } else if (s.compareTo(linesrange) == 0) {
+                                            which = Range.LINES;
+                                        }
+                                    } else if (name.equals("majorDimension")) {
+                                        String rows = reader.nextString();
+                                    } else if (name.equals("values")) {
+                                        switch (which) {
+                                            case ETA:
+                                                ret.ETA = stringToDate(readSingleCell(reader));
+                                                break;
+                                            case TIMESTAMP:
+                                                ret.timestamp = stringToDate(readSingleCell(reader));
+                                                break;
+                                            case LINES:
+                                                ret.lines = readLinesInfo(reader);
+                                                break;
+                                            case INFO:
+                                                readBaseInfo(reader, ret);
+                                                break;
+                                            default:
+                                                reader.skipValue();
+                                        }
+                                    } else {
+                                        reader.skipValue();
+                                    }
+                                }
+                                reader.endObject();
                             }
                             reader.endArray();
-                            ret.lines = lines;
-
-                        } else {
+                        }
+                        else {
                             reader.skipValue();
                         }
                     }
-                    reader.endObject();
                 } finally {
                     reader.close();
                 }

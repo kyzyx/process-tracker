@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.widget.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -36,16 +37,39 @@
         android:padding="2dp"
         android:textColorLink="@android:color/holo_blue_dark" />
 
-    <TextView
-        android:id="@+id/timestampView"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:background="@color/colorTimestampBar"
-        android:maxLines="1"
-        android:padding="2dp"
-        android:textSize="10sp"
-        android:textStyle="italic"
-        tools:textColor="@android:color/darker_gray" />
+        android:layout_weight="0">
+
+        <TextView
+            android:id="@+id/timestampView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:background="@color/colorTimestampBar"
+            android:maxLines="1"
+            android:padding="2dp"
+            android:textSize="10sp"
+            android:textStyle="italic"
+            app:layout_constraintEnd_toStartOf="@+id/etaView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:textColor="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/etaView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="@color/colorTimestampBar"
+            android:maxLines="1"
+            android:padding="2dp"
+            android:textSize="10sp"
+            android:textStyle="italic"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:textColor="@android:color/darker_gray" />
+    </android.support.constraint.ConstraintLayout>
 
 </android.widget.LinearLayout>

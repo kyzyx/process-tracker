@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.text.DateFormat;
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -30,6 +31,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     TextView titlebar;
     TextView lines;
     TextView updatedbar;
+    TextView etabar;
     ProgressBar progressbar;
     Context context;
     public ProcessViewFragment() {
@@ -49,6 +51,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         lines.setHorizontallyScrolling(true);
         progressbar = v.findViewById(R.id.taskProgressBar);
         updatedbar = v.findViewById(R.id.timestampView);
+        etabar = v.findViewById(R.id.etaView);
         return v;
     }
 
@@ -88,6 +91,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         String updated;
         int p = (int) Math.round(status.progress);
         progressbar.setProgress(p);
+        etabar.setText("");
         if (status.progress == 100) {
             if (status.timestamp.before(hoursago(16))) titlebar.setBackgroundColor(getResources().getColor(R.color.colorInactive));
             else titlebar.setBackgroundColor(getResources().getColor(R.color.colorComplete));
@@ -109,6 +113,11 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
             titlebar.setTextColor(Color.WHITE);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_main));
             updated = "Last updated";
+            if (status.timestamp.before(status.ETA)) {
+                long remaining = (status.ETA.getTime() - status.timestamp.getTime()) / (1000);
+                if (remaining < 60) etabar.setText("<1 min remaining");
+                etabar.setText(String.format("%dh%02dm remaining", remaining/(60*60), remaining%60));
+            }
         }
         updatedbar.setText(updated + ": " + dateFormat.format(status.timestamp));
     }

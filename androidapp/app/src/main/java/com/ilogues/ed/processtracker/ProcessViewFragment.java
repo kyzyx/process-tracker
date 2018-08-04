@@ -6,9 +6,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,7 +33,8 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     TextView titlebar;
     TextView lines;
     TextView updatedbar;
-    TextView etabar;
+    Chronometer etabar;
+    boolean iscounting;
     ProgressBar progressbar;
     Context context;
     public ProcessViewFragment() {
@@ -45,6 +48,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        iscounting = false;
         View v = inflater.inflate(R.layout.processview, container);
         titlebar = v.findViewById(R.id.titleView);
         lines = v.findViewById(R.id.outputView);
@@ -52,6 +56,21 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         progressbar = v.findViewById(R.id.taskProgressBar);
         updatedbar = v.findViewById(R.id.timestampView);
         etabar = v.findViewById(R.id.etaView);
+        etabar.setCountDown(true);
+        etabar.setTextColor(getResources().getColor(R.color.colorTimestampBar));
+        etabar.setFormat("");
+        etabar.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
+            public void onChronometerTick(Chronometer cArg) {
+                long time = SystemClock.elapsedRealtime() - cArg.getBase();
+                if (cArg.isCountDown()) time = -time;
+                int h = (int) (time / 3600000);
+                int m = (int) (time - h * 3600000) / 60000;
+                String timer = String.format("%02d:%02d", h, m);
+                cArg.setText(String.format(cArg.getFormat(), timer));
+                if (time > 0) cArg.setTextColor(getResources().getColor(R.color.colorTimestampText));
+                else cArg.setTextColor(getResources().getColor(R.color.colorTimestampBar));
+            }
+        });
         return v;
     }
 
@@ -64,6 +83,10 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     @Override
     public void onDetach() {
         super.onDetach();
+        if (iscounting) {
+            etabar.stop();
+            iscounting = false;
+        }
     }
 
     void update(String apikey, String sheeturl, String sheetName) {
@@ -91,22 +114,34 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         String updated;
         int p = (int) Math.round(status.progress);
         progressbar.setProgress(p);
-        etabar.setText("");
+        etabar.setTextColor(getResources().getColor(R.color.colorTimestampBar));
         if (status.progress == 100) {
             if (status.timestamp.before(hoursago(16))) titlebar.setBackgroundColor(getResources().getColor(R.color.colorInactive));
             else titlebar.setBackgroundColor(getResources().getColor(R.color.colorComplete));
             titlebar.setTextColor(Color.BLACK);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_complete));
+            if (iscounting) {
+                etabar.stop();
+                iscounting = false;
+            }
             updated = "Completed";
         } else if (isErrorStatus(status.status)) {
             titlebar.setBackgroundColor(Color.RED);
             titlebar.setTextColor(Color.WHITE);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_err));
+            if (iscounting) {
+                etabar.stop();
+                iscounting = false;
+            }
             updated = "Terminated";
         } else if (status.timestamp.before(hoursago(8))) {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorInactive));
             titlebar.setTextColor(Color.BLACK);
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_main));
+            if (iscounting) {
+                etabar.stop();
+                iscounting = false;
+            }
             updated = "Last updated";
         } else {
             titlebar.setBackgroundColor(getResources().getColor(R.color.colorAccent));
@@ -114,9 +149,17 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
             progressbar.setProgressDrawable(getResources().getDrawable(R.drawable.progress_main));
             updated = "Last updated";
             if (status.timestamp.before(status.ETA)) {
+                long boottime = (new Date()).getTime() - SystemClock.elapsedRealtime();
+                etabar.setBase(status.ETA.getTime() - boottime);
                 long remaining = (status.ETA.getTime() - status.timestamp.getTime()) / (1000);
-                if (remaining < 60) etabar.setText("<1 min remaining");
-                etabar.setText(String.format("%dh%02dm remaining", remaining/(60*60), remaining%60));
+                if (remaining < 60) etabar.setFormat("<1 min remaining");
+                else {
+                    etabar.setFormat("%s remaining");
+                    if (!iscounting) {
+                        etabar.start();
+                        iscounting = true;
+                    }
+                }
             }
         }
         updatedbar.setText(updated + ": " + dateFormat.format(status.timestamp));

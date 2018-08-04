@@ -5,6 +5,7 @@
     <color name="colorAccent">#ff4081</color>
 
     <color name="colorTimestampBar">#EEEEEE</color>
+    <color name="colorTimestampText">#AAAAAA</color>
     <color name="colorComplete">#DDFFDD</color>
     <color name="colorInactive">#AAAAAA</color>
 </resources>

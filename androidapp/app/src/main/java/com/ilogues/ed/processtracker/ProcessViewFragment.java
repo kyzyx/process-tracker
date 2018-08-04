@@ -17,8 +17,10 @@ import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -37,13 +39,23 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     boolean iscounting;
     ProgressBar progressbar;
     Context context;
+
+    List<DoneUpdatingObserver> observers;
+    public interface DoneUpdatingObserver {
+        void DoneUpdating();
+    }
+
     public ProcessViewFragment() {
         // Required empty public constructor
         lastProcessStatus = new ProcessStatus();
+        observers = new ArrayList<>();
     }
 
     public void setJobname(String jobname) { this.jobname = jobname; }
     public Date getLastUpdateTime() { return lastProcessStatus.timestamp; }
+    public void addDoneUpdatingObserver(DoneUpdatingObserver obs) {
+        observers.add(obs);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -163,5 +175,8 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
             }
         }
         updatedbar.setText(updated + ": " + dateFormat.format(status.timestamp));
+        for (DoneUpdatingObserver obs : observers) {
+            obs.DoneUpdating();
+        }
     }
 }

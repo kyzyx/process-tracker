@@ -20,20 +20,28 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.Menu;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Main2Activity extends AppCompatActivity {
+public class Main2Activity extends AppCompatActivity implements ProcessViewFragment.DoneUpdatingObserver {
     JobsListRequestTask requestTask;
     Handler handler;
 
     static final int JOB_ID = 7428;
     static final int IMMEDIATE_JOB_ID = 7429;
     List<ProcessViewFragment> frags;
+    Menu menu;
+    ImageView iv;
+    int waitingtasks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +58,11 @@ public class Main2Activity extends AppCompatActivity {
         frags.add((ProcessViewFragment) fm.findFragmentById(R.id.processview2));
         frags.add((ProcessViewFragment) fm.findFragmentById(R.id.processview3));
         frags.add((ProcessViewFragment) fm.findFragmentById(R.id.processview4));
+        for (ProcessViewFragment frag : frags) frag.addDoneUpdatingObserver(this);
+
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        iv = (ImageView) inflater.inflate(R.layout.iv_refresh, null);
+        waitingtasks = 0;
 
         handler = new Handler();
         handler.postDelayed(new Runnable() {
@@ -88,16 +101,28 @@ public class Main2Activity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        this.menu = menu;
         getMenuInflater().inflate(R.menu.actionbarmenu, menu);
         return true;
     }
 
-    public void onRefreshClick(MenuItem mi) {
+    public void onRefreshClick2(final View iv) {
+        if (waitingtasks == 0) onRefreshClick(null);
+    }
+    public void onRefreshClick(final MenuItem mi) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final String sheeturl = prefs.getString("sheets_url", "");
         final String apikey = getString(R.string.gapikey);
 
         if (sheeturl.isEmpty()) return;
+
+        if (menu != null) {
+            Animation rotation = AnimationUtils.loadAnimation(this, R.anim.rotate_refresh);
+            rotation.setRepeatCount(Animation.INFINITE);
+            iv.startAnimation(rotation);
+            menu.getItem(0).setActionView(iv);
+        }
+
         requestTask = new JobsListRequestTask(apikey, sheeturl, new JobsListRequestTask.JobsListRequestCallback() {
             @Override
             public void processResponse(JobsList l) {
@@ -107,13 +132,16 @@ public class Main2Activity extends AppCompatActivity {
                     if (i < l.jobs.size()) {
                         if (l.jobs.get(i).status != JobsList.Status.RUNNING) checkNotificationsImmediate();
                         v.setJobname(l.jobs.get(i).jobName);
-                        if (v.getLastUpdateTime().before(l.jobs.get(i).lastupdated))
+                        if (v.getLastUpdateTime().before(l.jobs.get(i).lastupdated)) {
+                            waitingtasks++;
                             v.update(apikey, sheeturl, l.jobs.get(i).sheetName);
+                        }
                     } else {
                         FragmentManager fm = getFragmentManager();
                         fm.beginTransaction().hide(v).commitAllowingStateLoss();
                     }
                 }
+                if (waitingtasks == 0) iv.clearAnimation();
             }
         });
         requestTask.execute();
@@ -121,5 +149,13 @@ public class Main2Activity extends AppCompatActivity {
     public void onSettingsClick(MenuItem mi) {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    public void DoneUpdating() {
+        if (waitingtasks > 0) waitingtasks--;
+        if (waitingtasks == 0) {
+            iv.clearAnimation();
+        }
     }
 }

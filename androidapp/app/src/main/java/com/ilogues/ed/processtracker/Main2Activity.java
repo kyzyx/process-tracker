@@ -131,11 +131,11 @@ public class Main2Activity extends AppCompatActivity implements ProcessViewFragm
                     ProcessViewFragment v = frags.get(i);
                     if (i < l.jobs.size()) {
                         if (l.jobs.get(i).status != JobsList.Status.RUNNING) checkNotificationsImmediate();
-                        v.setJobname(l.jobs.get(i).jobName);
-                        if (v.getLastUpdateTime().before(l.jobs.get(i).lastupdated)) {
+                        if (!v.isSameJob(l.jobs.get(i)) || v.getLastUpdateTime().before(l.jobs.get(i).lastupdated)) {
                             waitingtasks++;
                             v.update(apikey, sheeturl, l.jobs.get(i).sheetName);
                         }
+                        v.setJob(l.jobs.get(i));
                     } else {
                         FragmentManager fm = getFragmentManager();
                         fm.beginTransaction().hide(v).commitAllowingStateLoss();

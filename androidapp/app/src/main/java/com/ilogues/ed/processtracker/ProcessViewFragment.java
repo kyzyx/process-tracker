@@ -30,7 +30,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     ProcessRequestTask webtask;
     ProcessStatus lastProcessStatus;
 
-    String jobname;
+    JobsList.Job lastjob;
 
     TextView titlebar;
     TextView lines;
@@ -51,7 +51,8 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
         observers = new ArrayList<>();
     }
 
-    public void setJobname(String jobname) { this.jobname = jobname; }
+    public void setJob(JobsList.Job job) { this.lastjob = job; }
+    public boolean isSameJob(JobsList.Job job) { return lastjob != null && lastjob.isSameJob(job); }
     public Date getLastUpdateTime() { return lastProcessStatus.timestamp; }
     public void addDoneUpdatingObserver(DoneUpdatingObserver obs) {
         observers.add(obs);
@@ -117,7 +118,7 @@ public class ProcessViewFragment extends Fragment implements ProcessRequestCallb
     @Override
     public void processResponse(ProcessStatus status) {
         this.lastProcessStatus = status;
-        String title = jobname;
+        String title = lastjob.jobName;
         if (!status.task.isEmpty()) title += " " + status.task;
         if (!status.status.isEmpty()) title += " (" + status.status + ")";
         titlebar.setText(title);

@@ -46,6 +46,9 @@ public class JobsList {
         public Status status;
         public Date lastupdated;
 
+        public boolean isSameJob(@NonNull Job job) {
+            return jobName.compareTo(job.jobName) == 0 && started.compareTo(job.started) == 0;
+        }
         @Override
         public int compareTo(@NonNull Job job) {
             int statuscmp = status.compareTo(job.status);

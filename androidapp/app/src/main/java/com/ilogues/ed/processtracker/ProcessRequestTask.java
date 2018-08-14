@@ -41,10 +41,14 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
     }
 
     private static Date stringToDate(String s) {
-        double serialdate = Double.parseDouble(s);
-        serialdate -= DAYS_BETWEEN_EPOCHS;
-        long seconds = (long) (serialdate * 24 * 60 * 60);
-        return new Date(seconds*1000L);
+        try {
+            double serialdate = Double.parseDouble(s);
+            serialdate -= DAYS_BETWEEN_EPOCHS;
+            long seconds = (long) (serialdate * 24 * 60 * 60);
+            return new Date(seconds*1000L);
+        } catch (NumberFormatException e) {
+            return new Date(0L);
+        }
     }
 
     private enum Range {
@@ -66,9 +70,11 @@ public class ProcessRequestTask extends AsyncTask<Void, Void, ProcessStatus> {
         String lines = "";
         while (reader.hasNext()) {
             reader.beginArray();
-            String line = reader.nextString();
-            if (lines.isEmpty()) lines = line;
-            else lines = line + "\n" + lines;
+            if (reader.hasNext()) {
+                String line = reader.nextString();
+                if (lines.isEmpty()) lines = line;
+                else lines = line + "\n" + lines;
+            }
             reader.endArray();
         }
         reader.endArray();
